@@ -77,25 +77,26 @@ b_conv2 = bias_variable([64])              # bias for the second convolutional l
 h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)  # apply RELU activation function over the output
 h_pool2 = max_pool_2x2(h_conv2)                           #add max-pooling layer
 
-W_fc1 = weight_variable([7 * 7 * 64, 1024])
+W_fc1 = weight_variable([7 * 7 * 64, 1024])     # at this point the image has been reduced to 7x7, so we add a fully connected layer with 1024  neurons
 b_fc1 = bias_variable([1024])
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
+h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])            # we reshape the vector to not be 4d and apply relu
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
-keep_prob = tf.placeholder(tf.float32)
+keep_prob = tf.placeholder(tf.float32)            # dropout - we want it on for training but off for testing
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
-W_fc2 = weight_variable([1024, 10])
+W_fc2 = weight_variable([1024, 10])               # second fully connected layer, 10 neurons this time
 b_fc2 = bias_variable([10])
 
-y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)    # apply the softmax function
 
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1])) # apply the cross entropy function
+train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)                          # use the more sophisticated Adam optimizer
+correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))              # get the list of correct positions           
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))               # get the accuracy
 sess.run(tf.initialize_all_variables())
+
 for i in range(20000):
   batch = mnist.train.next_batch(50)
   if i%100 == 0:
@@ -106,23 +107,3 @@ for i in range(20000):
 
 print("test accuracy %g"%accuracy.eval(feed_dict={
     x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
